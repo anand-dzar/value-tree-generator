@@ -6,6 +6,7 @@ from pathlib import Path
 EXCEL_FILE_PATH = Path(__file__).parent.parent / "service_transformation_node_master.xlsx"
 NODE_MASTER_SHEET = "Node_Master"
 CONTEXT_APPLICABILITY_SHEET = "Context_Applicability"
+VALUE_INTENT_SUMMARY_SHEET = "Value Intent_Summary"
 
 # Default applicability threshold (1-5 scale)
 DEFAULT_THRESHOLD = 3

@@ -6,7 +6,7 @@ import pandas as pd
 
 from config import (
     EXCEL_FILE_PATH, NODE_MASTER_SHEET, CONTEXT_APPLICABILITY_SHEET,
-    ACTIVE_STATUS
+    VALUE_INTENT_SUMMARY_SHEET, ACTIVE_STATUS
 )
 from models import Node, ApplicabilityRule
 from validators import validate_all, ValidationError
@@ -19,6 +19,7 @@ class DataLoader:
         self.excel_path = excel_path or EXCEL_FILE_PATH
         self._node_master_df: Optional[pd.DataFrame] = None
         self._context_df: Optional[pd.DataFrame] = None
+        self._value_intent_summary_df: Optional[pd.DataFrame] = None
         self._validation_errors: list[str] = []
         self._loaded = False
 
@@ -30,6 +31,12 @@ class DataLoader:
             # Load sheets
             self._node_master_df = pd.read_excel(excel_file, NODE_MASTER_SHEET)
             self._context_df = pd.read_excel(excel_file, CONTEXT_APPLICABILITY_SHEET)
+
+            # Load optional Value Intent Summary sheet
+            if VALUE_INTENT_SUMMARY_SHEET in excel_file.sheet_names:
+                self._value_intent_summary_df = pd.read_excel(
+                    excel_file, VALUE_INTENT_SUMMARY_SHEET
+                )
 
             # Validate data
             self._validation_errors = validate_all(
@@ -79,6 +86,18 @@ class DataLoader:
             return []
         values = self._context_df['Value_Intent'].dropna().unique().tolist()
         return sorted(values)
+
+    def get_value_intent_description(self, value_intent: str) -> Optional[str]:
+        """Get the description for a specific value intent."""
+        if not self._loaded or self._value_intent_summary_df is None:
+            return None
+        row = self._value_intent_summary_df[
+            self._value_intent_summary_df['Value_Intent'] == value_intent
+        ]
+        if row.empty:
+            return None
+        description = row.iloc[0]['Description']
+        return description if pd.notna(description) else None
 
     def get_unique_industries(self) -> list[str]:
         """Extract unique Industry values for dropdown."""
